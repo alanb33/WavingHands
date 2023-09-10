@@ -1,0 +1,8 @@
+1. no more than 2 grobles can be summoned at once?
+counter-spelling a shield spell and trying to stab the wizard in the same turn results in the stab being deflected
+make cause heavy wounds say how much it do
+confusion tells the confused person an incomplete message
+time stop might interrupt incoming spellcasts? I cast time stop and X cast paralysis but paralysis never happen. uncertain -- test!
+tell a diseased/poisoned person how many turns they have left
+target mode makes names into title mode; should not!
+storm spell directed at invisible target did not hit anyone but should
