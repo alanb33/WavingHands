@@ -17,7 +17,7 @@ class SpellbinderClient:
 
         self._server = None
 
-        self._HOST      = "71.72.172.9"
+        self._HOST      = "192.168.1.1"
         self._PORT      = 12345
         self._HOST_ADDR = (self._HOST, self._PORT)
         self._ENC       = "utf-8"
