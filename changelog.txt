@@ -1,0 +1,240 @@
+implement ncurses for colors, highlighting, etc
+
+Changelog 2020-06-06
+
+Changelog, known bugs, & planned features 
+
+2020-06-09
+Spellbinder 1.2b1
+
+1. Added cleaner formatting for strings longer than 79 characters.
+2. Expanded spellbook reference during gesture phase. New commands:
+
+Command         Example Description
+@g                      Show the spellbook sorted by gesture.
+@g<num>         @g27    Show the description of the spell as numbered by @g.
+@<spell>        @shield Show the description of the spell by name.
+@#<hand><num>   @#r3    Show what spells can be completed by the given hand (r for right, l for left)
+#                       Toggle auto-opening of the spellbook at the start of each turn.
+
+3. There is now an option to view a spell's description by sending ? when asked for a target.
+4. Clarified Shield description to reflect that it also defends against elemental attacks.
+5. Make history automatically move if it is longer than 8 gestures, as no spells are longer than 8.
+6. Added an auto-spellbook toggle, activated with #, to make the spellbook automatically open on turn start.
+
+2020-06-08
+Spellbinder 1.1b1
+
+1.1 is marked by several new features.
+
+1. Added a maximum character limit to the customization phase.
+2. Disallowed entries composed entirely of spaces or escape characters in the customization phase.
+3. Adding a 'waiting for challenger' message during the 'select target' prompts.
+4. Organization of the server code to prevent crashes due to wizard status desync.
+5. Wizards are now warned if their gestures would cause a surrender.
+6. Slowed the end-round report slightly.
+7. Gestures changed by enchantments now show properly.
+8. Some detrimental enchantments now show info about them during the gesture phase -- currently: amnesia, blindness, charm, confusion, fear, paralysis.
+9. Fixed a bug where paralysis failed to clear the enchantment status, resulting in the paralyzed wizard being immune to further enchantment (unless it was paralysis again)
+10. Fully implemented clientside choices for Permanency.
+
+2020-06-08
+Spellbinder 1.0b11
+
+ 1. NEEDS TESTING: Improvements to network code, especially in relation to Windows clients, especially regarding the end-round report.
+
+2020-06-08
+Spellbinder 1.0b10
+
+Fixes for end-round report specific to Windows clients
+
+2020-06-08
+Spellbinder 1.0b9
+
+Fixes for end-round report, length can now be indefinite
+
+2020-06-08
+Spellbinder 1.0b8
+
+End-round report can now be of indefinite length.
+Prevented mysterious circumstances that would result in the end-round report being printed six times at once.
+
+2020-06-07
+Spellbinder 1.0b7
+
+Some formatting changes to spellbook display.
+You can now see enemy HP during the gesture phase.
+Fixed a bug where the gamemaster tried to query non-wizards for wizard-specific attributes.
+
+2020-06-07
+Spellbinder 1.0b6
+
+Fixed confusion not clearing from minions properly.
+Fixed blank hand messages after paralysis expired (did not have any gameplay effect)
+Changed main() invocation
+
+2020-06-07
+Spellbinder 1.0b5
+
+Fixed Delayed Effect not asking client for info correctly.
+
+2020-06-07
+Spellbinder 1.0b4
+
+Fixed cold resistance vs ice elementals for real this time.
+Fixed an issue where amnesia could get stuck on a wizard without the use of permanency.
+Fixed Charm Person not asking the client for its relevant info.
+
+2020-06-07
+Spellbinder 1.0b3
+
+NEEDS TESTING: The game would crash if the end-round report was too large. A fix was implemented in 1.0b2 but needs more testing.
+
+BUGFIX: The client is now asked for a paralysis target properly.
+BUGFIX: The client is now asked for an elemental type when summoning.
+BUGFIX: Elementals can no longer be targeted on the turn they are summoned.
+BUGFIX: Adding flavor messages for enchantments messing with wizard activities was already implemented, just not working properly for some enchantments.
+
+ADDED: The gesture history is now shown after the spellbook is opened.
+
+1. BUG: Strange behavior related to using counter-spell against a target protected by Protection from Evil: keyword, "protective aura fades away". Does not affect gameplay.
+2. PLANNED: The clients should be informed during the gesture phase of any minions and elementals on the field.
+3. PLANNED: The hand history can grow very long. Start removing old gestures when longer than 8 (the longest spell).
+4. PlANNED: Make it more apparent that capital letters in spells mean both hands need to perform the gesture at once.
+5. PLANNED: Spellbook option to sort spells by what you may be able to cast with each hand
+
+Spellbinder 1.0b2
+
+ 1. BUG: Paralysis asks the server for the hand to enchant, not the client.
+ 2. BUG: Elemental spells ask the server for the elemental type, not the client.
+ 3. BUG: Strange behavior related to using counter-spell against a target protected by Protection from Evil: keyword, "protective aura fades away". Does not affect gameplay.
+ 4. BUG: Elementals can be targeted on the same turn they are summoned. This is a remnant from old code where that was possible.
+
+ 5. BUGFIX: The game would crash if the end-round report was too large. This is tentatively fixed but requires more testing.
+
+ 6. PLANNED: Adding flavor messages for enchantments interfering with wizard activities.
+ 7. PLANNED: The clients should be informed during the gesture phase of any minions and elementals on the field.
+ 8. PLANNED: Display the gesture history after opening your spellbook for easy reference.
+ 9. PLANNED: The hand history can grow very long. Start removing old gestures when longer than 8 (the longest spell).
+10. PlANNED: Make it more apparent that capital letters in spells mean both hands need to perform the gesture at once.
+
+Changelog 2020-06-01
+
+All spells are implemented!
+
+1. Bugfix: Anti-spell: Perceived history of other wizards was not cleared when the other wizard was the subject of an Anti-spell.
+2. Bugfix: Charm Person: If Charm Person was permanent on the victim, the victim was allowed to choose who they wanted to stab despite the charmer indicating a target.
+3. Bugfix: Enchantments: Changed some enchantments to not rely on the wizard.enchantments property outside of conflict checking -- it should only be used for conflicting enchantments.
+4. Bugfix: Haste: Hasted gestures were not being perceived by other wizards.
+5. Bugfix: Spellcasting: Fixed a bug where hasted spells requiring a two-handed gesture completed twice if they were finished on the first turn of haste.
+
+Changelog 2020-05-29
+
+1. Implemented Invisibility
+2. Implemented Delayed Effect
+3. Implemented Permanency's basic effects
+4. Implemented Permanency: Amnesia
+
+11 spells remain:
+
+ 1. Permanency: Blindness
+ 2. Permanency: Confusion
+ 3. Permanency: Charm Person
+ 4. Permanency: Delayed Effect 
+ 5. Permanency: Fear
+ 6. Permanency: Invisibility
+ 7. Permanency: Paralysis
+ 8. Permanency: Protection from Evil
+ 9. Haste
+10. Permanency: Haste
+11. Time Stop
+
+Changelog 2020-05-28
+
+1. Implemented Invisibility
+
+Changelog 2020-05-28
+
+1. Partial implementation of Remove Enchantment (full implementation relies on not-yet-implemented spells)
+2. Partial implementation of Blindness (functionally complete, full implementation relies on adding networking)
+
+Spells remaining:
+
+1. Haste
+2. Time Stop
+3. Delayed Effect
+4. Permanency
+
+Changelog 2020-05-27:
+
+1. Implemented Charm Person
+2. Fixed bugs regarding forced stabbing (via Amnesia and Charm Person)
+3. Added more flavor text to specific situations involving forced stabbing
+4. Implemented Charm Monster
+5. Implemented Paralysis
+6. Implemented Fear
+7. Implemented Anti-spell
+8. Implemented Disease
+9. Implemented Poison
+
+Spells remaining:
+
+1. Remove Enchantment
+2. Blindness
+3. Invisibility
+4. Haste
+5. Time Stop
+6. Delayed Effect
+7. Permanency
+
+Changelog 2020-05-23:
+
+1. Added code to support spells that have a duration.
+2. Implemented Protection from Evil
+3. Implemented Amnesia
+4. Implemented Confusion
+
+Spells remaining:
+
+ 1. Remove Enchantment
+ 2. Blindness
+ 3. Invisibility
+ 4. Haste
+ 5. Time Stop
+ 6. Delayed Effect
+ 7. Permanency
+
+Changelog 2020-05-22:
+
+1. Fixed various bugs related to Raise Dead
+2. Implemented Cure Light Wounds & Cure Heavy Wounds
+4. Added code to support later implementation of Poison/Disease
+5. Implemented Magic Missile
+6. Implemented Finger of Death
+7. Implemented Lightning Bolt and the once-per-battle Quick Lightning Bolt
+8. Implemented Cause Light Wounds & Cause Heavy Wounds
+9. Implemented Fireball
+10. Implemented Fire Storm & Ice Storm
+
+Progress: 25 of 42 spells are implemented
+
+Changelog 2020-05-21:
+
+1. Implemented Raise Dead
+
+Changelog 2020-05-20:
+
+1. Added death code for minions and elementals (wizard death code exists but is temporary)
+2. Rewrote implementation for Shield
+3. Implemented Resist Element spells
+4. Added more info on target choosing
+5. Gave Grobles unique names
+6. You can no longer cast multiple spells with a single gesture (Did not adhere to the original rules)
+
+Changelog 2020-05-19:
+
+1. New:     Implemented Counter-spell
+2. New:     Implemented Magic Mirror
+3. Removed: Summons being targetable on the turn of summoning (as it did not adhere to the original rules)
+4. Bugfix:  Summoned monsters still existed and could act even if their summoning spell was Counter-spelled
+5. New bug: Magic Mirror is not reflecting monster summons. There is no code to handle it yet

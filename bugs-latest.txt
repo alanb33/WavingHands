@@ -1,0 +1,9 @@
+dispel magic cast DIRECTLY on a monster does not remove the monster from the field of the casting wizard
+
+charm person is permanent! it should only last one turn
+
+PARALYSIS: I tried to do S, but it gave me an F instead of a D, W became a F
+
+CAUSE HEAVY WOUNDS: doesn't tell them how much they lost
+
+death cause was 'catastrophic organ failure' on a fire storm kill

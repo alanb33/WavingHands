@@ -1,0 +1,209 @@
+spell=Surrender
+gesture=P
+desc=surrender placeholder
+kill=null
+
+spell=Shield
+gesture=p
+desc=This spell protects the subject from all attacks from monsters and elementals, from missile spells, and from stabs by wizards. The shield will block any number of such attacks but lasts for only one round. The shield protects the subject on the turn in which it is cast.
+kill=null
+
+spell=Remove Enchantment
+gesture=pdwp
+desc=Terminates the effects of all Enchantment Spells that have been cast on the subject including those that are cast on the subject at the same time as the Remove Enchantment. Effects which have already passed are not reversed. For example, the victim of a Blindness spell would not be able to see what their opponent's gestures were on the turn the Blindness is removed. Note that all enchantments are removed and the caster may not pick and choose. Remove Enchantment also destroys any monster upon which it is cast, although the monster can attack in that turn. Wizards suffer no adverse effects from this spell, aside from the removal of their enchantments.
+kill=null
+
+spell=Magic Mirror
+gesture=CW
+desc=Any spell cast on a subject protected by this spell is reflected back upon the caster of that spell. The Magic Mirror protects only during the turn in which it was cast. The protection includes spells like Magic Missile and Lightning Bolt but does not include attacks by monsters or stabs from wizards. \n\nThe Magic Mirror does not affect spells which are cast upon oneself. The Magic Mirror is countered totally if either a Counter-spell or Dispel Magic are cast on the subject in the same turn as the Magic Mirror. The Magic Mirror has no effect on spells which affect more than one person (such as Fire Storm). Two Magic Mirrors cast at one subject simultaneously combine to form a single Magic Mirror.
+kill=null
+
+spell=Counter-spell
+gesture=wpp
+desc=Any other spell cast upon the subject in the same turn has no effect. In the case of blanket spells, which affect more than one person, the subject of the Counter-spell alone is protected.\n\nFor example, a Fire Storm spell could kill off a monster, but not if a Counter-spell were cast on the monster in the same turn. Everyone else would be affected as usual by the Fire Storm unless they had their own protection. The Counter-spell will cancel all the spells cast at the subject for that turn (including Remove Enchantment and Magic Mirror) except Dispel Magic and Finger of Death. It will combine with another Counter-spell into one. The Counter-spell will also act as a Shield spell on the final gesture in addition to its other properties.
+kill=null
+
+spell=Counter-spell (alt)
+gesture=wws
+desc=This spell is identical to Counter-spell except for the gesture requirements.
+kill=null
+
+spell=Dispel Magic
+gesture=Cdpw
+desc=This spell acts as a combination of Counter-spell and Remove Enchantment, but its effects are universal rather than limited to the subject of the spell. It will stop any spell cast in the same turn from working (apart from another Dispel Magic spell, which combines with it for the same result), and will remove all enchantments from all beings before they have effect. In addition, all monsters are destroyed, although they can attack that turn. Counter-spells and Magic Mirrors have no effect. The spell will not work on stabs or surrenders. As with a Counter-spell, it also acts as a Shield for its subject. 
+kill=null
+
+spell=Raise Dead
+gesture=dwwfwC
+desc=The subject of this spell is granted the power to raise the dead. The subject chooses a target, and when the spell is cast, life returns to the corpse and all damage is cured. All enchantments are also removed (as per the Remove Enchantment spell), so any diseases or poisons will be neutralized and all other enchantments removed. If swords, knives, or other implements of destruction still remain in the corpse when it is raised, they will of cause damage as usual. The subject will be able to act normally immediately after the spell is cast. On the turn a monster is raised, it may attack. Wizards may begin gesturing on the turn following their return from the dead. This is the only spell which affects corpses -- it cannot be stopped by a Counter-spell. A Dispel Magic spell will prevent its effect, since Dispel Magic affects all spells no matter what their subject. If Raise Dead is cast on a live individual, the effect is that of a Cure Light Wounds spell, recovering 5 points of damage, or as many as have been sustained if less than 5. Note that any diseases the live subject might have are not cured.
+kill=null
+
+spell=Cure Light Wounds
+gesture=dfw
+desc=If the subject has received damage, then they are cured by 1 point as if that point had not been inflicted. If a wizard was at 10 HP and was hit simultaneously by a Cure Light Wounds and a Lightning Bolt, he would finish that turn on 6 HP rather than 5 HP. The effect is not removed by a Dispel Magic or Remove Enchantment.
+kill=null
+
+spell=Cure Heavy Wounds
+gesture=dfpw
+desc=This spell is similar to Cure Light Wounds in effect, but 2 HP is restored. Note that only 1 HP point is restored if only 1 HP of damage has been sustained, and the spell has no effect if the subject is completely undamaged. This spell will also cure any diseases the subject might have at the time.
+kill=null
+
+spell=Summon Groble I
+gesture=sfw
+desc=This spell creates a groble under the control of the subject upon whom the spell is cast (or if cast on a monster, the subject monster's controller, even if the monster later dies or changes loyalty.) The groble can attack immediately and its victim can be any wizard or other monster the controller desires, stating which at the time they writes their gestures. It does 1 HP of damage to its victim per turn and is destroyed after 1 HP of damage is inflicted upon it. The summoning spell cannot be cast at an elemental, and if cast at something which doesn't exist, the spell has no effect.
+kill=null
+
+spell=Summon Groble II
+gesture=psfw
+desc=This spell is the same as Summon Groble, but the big groble created inflicts and is destroyed by 2 HP of damage rather than 1.
+kill=null
+
+spell=Summon Groble III
+gesture=fpsfw
+desc=This spell is the same as Summon Groble, but the very big groble created inflicts and is destroyed by 3 HP of damage rather than 1.
+kill=null
+
+spell=Summon Groble IV
+gesture=wfpsfw
+desc=This spell is the same as Summon Groble, but the very, very big groble created inflicts and is destroyed by 4 HP of damage rather than 1.
+kill=null
+
+spell=Summon Elemental
+gesture=Cswws
+desc=This spell creates either a fire elemental or an ice elemental at the discretion of the person upon whom the spell is cast after he has seen all the gestures made that turn. Elementals must be cast at someone and cannot be "shot off" harmlessly at some inanimate object. The elemental will, for that turn and until destroyed, attack everyone who is not resistant to its type (heat or cold), causing 3 HP of damage per turn. The elemental takes 3 HP of damage to be killed, but may also be destroyed by spells of the opposite type (e.g. Fire Storm, Resist Cold or Fireball will kill an ice elemental), and will also neutralize the canceling spell. Elementals will not attack on the turn they are destroyed by such a spell. An elemental will also be engulfed and destroyed by a storm of its own type but, in such an event, the storm is not neutralized, although the elemental still does not attack in that turn. Two elementals of the opposite type will also destroy each other before attacking, and two of the same type will join together to form a single elemental of normal strength. Note that only wizards or monsters resistant to the type of elemental, or who are casting a spell which has the effect of a Shield do not get attacked by the elemental. Casting a Fireball upon yourself when being attacked by an ice elemental is no defence!
+kill=null
+
+spell=Magic Missile
+gesture=sd
+desc=This spell creates a material object of hard substance which is hurled towards the subject of the spell and causes him 1 HP of damage. The spell is thwarted by a Shield in addition to the usual Counter-spell, Dispel Magic, and Magic Mirror (the latter causing it to hit whoever cast it instead).
+kill=was turned into Swiss cheese by a Magic Missile.
+
+spell=Finger of Death
+gesture=pwpfsssd
+desc=Kills the subject stone dead. This spell is so powerful that it is unaffected by a Counter-spell, although a Dispel Magic spell cast upon the final gesture will stop it. The usual way to prevent being harmed by this spell is to disrupt it during casting using, for example, an Anti-spell.
+kill=was blasted into dust.
+
+spell=Lightning Bolt
+gesture=dffdd
+desc=The subject of this spell is hit by a bolt of lightning and sustains 5 HP of damage. Resistance to heat or cold is irrelevant. There are two gesture combinations for the spell, but the shorter one may be used only once per day (i.e. per battle) by any wizard. The longer one may be used without restriction. A Shield spell offers no defence.
+kill=was flash-fried by a lightning bolt.
+
+spell=Lightning Bolt (Quick)
+gesture=wddC
+desc=This version of Lightning Bolt can only be used once per battle. The subject of this spell is hit by a bolt of lightning and sustains 5 HP of damage. Resistance to heat or cold is irrelevant. A Shield spell offers no defence.
+kill=was flash-fried by a lightning bolt.
+
+spell=Cause Light Wounds
+gesture=wfp
+desc=The subject of this spell is inflicted with 2 points of damage. Resistance to heat or cold offers no defence. A simultaneous Cure Light Wounds will serve only to reduce the damage to 1 HP. A Shield has no effect.
+kill=was killed by a sudden headache.
+
+spell=Cause Heavy Wounds
+gesture=wpfd
+desc=This has the same effect as Cause Light Wounds but inflicts 3 HP of damage instead of 2.
+kill=was killed by all their blood falling out.
+
+spell=Fireball
+gesture=fssdd
+desc=The subject of this spell is hit by a ball of fire and sustains 5 HP of damage unless they are resistant to fire. If, at the same time, an ice storm is on the field, the subject of the Fireball is not harmed by either spell, although the storm will affect others as normal. If directed at an ice elemental, the fireball will destroy it before it can attack.
+kill=was blasted to little flaming bits!
+
+spell=Fire Storm
+gesture=swwC
+desc=Everything not resistant to heat sustains 5 HP of damage that turn. The spell cancels wholly, causing no damage, when either an ice storm or an ice elemental manifests on the field. It will destroy but not be destroyed by a fire elemental. Two Fire Storms act as one.
+kill=was baked by a fire storm!
+
+spell=Ice Storm
+gesture=wssC
+desc=Everything not resistant to cold sustains 5 HP of damage that turn. The spell cancels wholly, causing no damage, when either a Fire Storm or a fire elemental manifests on the field, and will the damage will be canceled against a subject if they are hit with a Fireball at the same time. It will destroy but not be destroyed by an ice elemental. Two Ice Storms act as one.
+kill=was turned into a snowman by an ice storm.
+
+spell=Amnesia
+gesture=dpp
+desc=If the subject of this spell is a wizard, next turn they must repeat the gestures they made in the current turn, including stabs. If the subject is a monster, it will attack whoever it attacked this turn. If the subject is simultaneously the subject of any of Confusion, Charm Person, Charm Monster, Paralysis, or Fear, then Amnesia will have no effect and the other spells will cancel out.
+kill=null
+
+spell=Confusion
+gesture=dsf
+desc=If the subject of this spell is a wizard, next turn they send their gestures as usual, on reveal, one of them will be replaced by another. If the subject is simultaneously the subject of any of Amnesia, Charm Person, Charm Monster, Paralysis, or Fear, then Confusion will have no effect and the other spells will cancel out.
+kill=null
+
+spell=Charm Person
+gesture=psdf
+desc=This spell only affects wizards. The subject is told which of their hands will be controlled at the time the spell hits, and in the following turn, the caster of the spell indicates the gesture they wants the subject's named hand to perform. This could be a stab. If the subject is only so because of a reflection from a Magic Mirror, the subject of the Magic Mirror assumes the role of caster and indicates their opponent's gesture. If the subject is simultaneously the subject of any of Amnesia, Confusion, Charm Monster, Paralysis, or Fear, then Confusion will have no effect and the other spells will cancel out.
+kill=null
+
+spell=Charm Monster
+gesture=psdd
+desc=This spell only affects monsters (excluding elementals). Control of the monster is transferred to the caster of the spell (or retained by him) as of this turn, i.e. the monster will attack whosoever its new controller dictates from that turn onwards including that turn. Further charms are, of course, possible, transferring as before. If the subject is simultaneously the subject of any of Amnesia, Charm Person, Confusion, Paralysis, or Fear, then Charm Monster will have no effect and the other spells will cancel out.
+kill=null
+
+spell=Paralysis
+gesture=fff
+desc=If the subject of the spell is a wizard, then on the turn the spell is cast, after gestures have been revealed, the caster selects one of the subject's hands, and on the next turn that hand is paralyzed into the position it is in this turn. If the wizard already had a paralyzed hand, it must be the same hand which is paralyzed again. Certain gestures remain the same, but if the hand being paralyzed is performing a C, S or W, it is instead paralyzed into F, D or P respectively, otherwise it will remain in the position written down (this allows repeated stabs). If the subject of the spell is a monster (excluding elementals which are unaffected) it simply does not attack in the turn following the one in which the spell was cast. If the subject is simultaneously the subject of any of Amnesia, Charm Person, Charm Monster, Confusion, or Fear, then Paralysis will have no effect and the other spells will cancel out.
+kill=null
+
+spell=Fear
+gesture=swd
+desc=This spell only affects wizards. In the turn following the casting of this spell, the subject cannot perform a C, D, F or S gesture. If the subject is simultaneously the subject of any of Amnesia, Charm Person, Charm Monster, Confusion, or Paralysis, then Fear will have no effect and the other spells will cancel out.
+kill=null
+
+spell=Anti-spell
+gesture=spf
+desc=On the turn following the casting of this spell, the subject cannot include any gestures made on or before this turn in a spell sequence and must restart a new spell from the beginning of that spell sequence. The spell does not affect spells which are cast on the same turn, nor does it affect monsters.
+kill=null
+
+spell=Protection from Evil
+gesture=wwp
+desc=For this turn and the following 3 turns, the subject of this spell is protected as if using a Shield spell. Concurrent Shield spells offer no further protection and compounding Protection from Evil spells merely overlap, offering no extra cover.
+kill=null
+
+spell=Resist Heat
+gesture=wwfp
+desc=The subject of this spell becomes totally resistant to all forms of heat attack (Fireball, Fire Storm and fire elementals). Only Dispel Magic or remove enchantment will terminate this resistance once started (although a Counter-spell will prevent it from working if cast at the subject at the same time as this spell). A Resist Heat cast directly on a fire elemental will destroy it before it can attack that turn, but there is no effect on ice elementals.
+kill=null
+
+spell=Resist Cold
+gesture=ssfp
+desc=The subject of this spell becomes totally resistant to all forms of cold attack (Ice Storm and ice elementals). Only Dispel Magic or remove enchantment will terminate this resistance once started (although a Counter-spell will prevent it from working if cast at the subject at the same time as this spell). A Resist Cold cast directly on an ice elemental will destroy it before it can attack that turn, but there is no effect on fire elementals.
+kill=null
+
+spell=Disease
+gesture=dsfffC
+desc=The subject of this spell immediately contracts a deadly, non-contagious disease which will kill them at the end of 6 turns counting from the one upon which the spell is cast. The malady is cured by Remove Enchantment, Cure Heavy Wounds, or Dispel Magic.
+kill=null
+
+spell=Poison
+gesture=dwwfwd
+desc=The subject of this spell is immediately given a deadly poison which will kill them at the end of 6 turns counting from the one upon which the spell is cast. The malady is cured by Remove Enchantment or Dispel Magic.
+kill=none
+
+spell=Blindness
+gesture=dwffD
+desc=For the next 3 turns (not including the one in which the spell was cast), the subject is unable to see. If they are a wizard, they cannot tell what their opponent's gestures are, although they will be informed of any which affect them (e.g. summon spells, Magic Missiles cast at them, etc) but not Counter-spells to their own attacks. The subject can control their monsters (e.g. "Attack whatever it was that just attacked me"). Blinded monsters are instantly destroyed and cannot attack in that turn.
+kill=null
+
+spell=Invisibility
+gesture=ppWS
+desc=For the next 3 turns, the subject of the spell becomes invisible to their opponent and their monsters. All spells, snaps, and claps the the subject creates can be seen by their opponent and identified. The subject cannot be attacked by any monsters, but monsters can be directed at the subject in case they become visible prematurely. Wizards can still stab and direct spells at them, but will not make an impact unless the subject becomes visible. Any monster made invisible is destroyed due to magic overload.
+kill=null
+
+spell=Haste
+gesture=pwpwwC
+desc=For the next 3 turns, the subject (but not his monsters, if a wizard) makes an extra set of gestures due to being sped up. This takes effect in the following turn so that instead of giving one pair of gestures, 2 are given, the effect of both being taken simultaneously at the end of the turn -- thus, a single Counter-spell from his adversary could cancel 2 spells cast by the hastened wizard on the 2 half-turns if the timing is correct. Non-hastened wizards and monsters can see everything the hastened individual is doing. Hastened monsters can change target in the extra turns if desired.
+kill=null
+
+spell=Time Stop
+gesture=sppC
+desc=The subject of this spell immediately takes an extra turn, on which no-one can see or know about unless they are harmed. All non-affected beings have no resistance to any form of attack, e.g. a wizard halfway through the duration of a protection from evil spell can be harmed by a monster which has had its time stopped. Time-stopped monsters attack whoever their controller instructs, and time-stopped elementals affect everyone, resistance to heat or cold being immaterial in that turn.
+kill=null
+
+spell=Delayed Effect
+gesture=dwsssp
+desc=This spell only works if cast upon a wizard. The next spell they complete, provided it is on this turn or one of the next three, is "banked" until needed. You cannot bank a Delayed Effect cast. The spell must be written down to be used by its caster at the same time that he writes his gestures. Note that spells banked are those cast by the subject. If the subject casts more than one spell at the same time, they choose which spell is to be banked. A wizard may only have one spell banked at any one time.
+kill=null
+
+spell=Permanency
+gesture=spfpsdw
+desc=This spell only works if cast upon a wizard. The next spell they complete, provided it is on this turn or one of the next three, and which is one of Amnesia, Confusion, Charm Person, Paralysis, Fear, Protection from Evil, Blindess, Invisibility, or Haste will have its effect made permanent. For example, a Confusion spell will be the same gesture rather than re-rolling the dice, a Charm Person will mean repetition of the chosen gesture, etc. If the subject of the Permanency casts more than one spell at the same time eligible for Permanency, they choose which has its duration made permanent. Note that the person who has their spell made permanent does not necessarily have to make themself the subject of the spell. A Permanency spell cannot increase its own duration, nor the duration of spells saved by a Delayed Effect (so if both a Permanency and Delayed Effect are eligible for the same spell to be banked or extended, a choice must be made, the losing spell being neutralized and working on the chosen spell instead.)
+kill=null
