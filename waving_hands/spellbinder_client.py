@@ -8,17 +8,18 @@ import socket
 import sys
 import time
 
-from spellbook import Spellbook
-from targetable_client import TargetableClient
+from waving_hands.spellbook import Spellbook
+from waving_hands.targetable_client import TargetableClient
+from waving_hands.config import DATA
 
 class SpellbinderClient:
 
-    def __init__(self):
+    def __init__(self, host: str = "localhost", port: int = 12345):
 
         self._server = None
 
-        self._HOST      = "192.168.1.1"
-        self._PORT      = 12345
+        self._HOST      = host
+        self._PORT      = port
         self._HOST_ADDR = (self._HOST, self._PORT)
         self._ENC       = "utf-8"
         self._BUFFSIZE  = 1024
@@ -33,7 +34,7 @@ class SpellbinderClient:
         self._hp        = 14
         self._name      = "Merlin"
 
-        self._spellbook = Spellbook('./spelllist.txt')
+        self._spellbook = Spellbook(DATA["spellbook"])
         self._hands     = {}
         self._perceived_history = {}
         self._monsters  = {}
@@ -1528,9 +1529,9 @@ class SpellbinderClient:
         self.connection_loop()
         self.kill_connection()
 
-def main(screen=None):
+def main(host, port, screen=None):
 
-    client = SpellbinderClient()
+    client = SpellbinderClient(host=host, port=port)
     client.setup(screen)
 
     curses.nocbreak()

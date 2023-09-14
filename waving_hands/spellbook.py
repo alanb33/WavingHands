@@ -2,7 +2,7 @@
 # the spellbook is responsible for spell lookup.
 
 import operator
-from spell import Spell
+from waving_hands.spell import Spell
 
 class Spellbook:
 

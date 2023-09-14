@@ -3,18 +3,40 @@ import pickle
 import select
 import socket
 import sys
+import logging
+import logging.config
 
-from elemental import Elemental
-from minion import Minion
-from targetable_client import TargetableClient
-from wizard import Wizard
-import groblenames
+from waving_hands.elemental import Elemental
+from waving_hands.minion import Minion
+from waving_hands.targetable_client import TargetableClient
+from waving_hands.wizard import Wizard
+from waving_hands import groblenames
+
+log = logging.getLogger(__name__)
+
 
 class Gamemaster:
 
-    def __init__(self):
+    def __init__(self,
+        host: str = "localhost",
+        port: int = 12345,
+        pregame: bool = True,
+        customize_wizards: bool = True,
+        players: int = 2):
+        """
+        Start the game, with a given number of parameters
+
+        :param host: IP address or host to serve the game, defaults to localhost
+        :param port: Port to use for the server
+        :param pregame: Start the game with pre-game flair? Defaults to True
+        :param customize_wizards: Allow players to customize their wizards? Defaults to True
+        :param players: Number of players to use for the game. Defaults to 2
+        """
 
         self._wizards = []
+
+        self.pregame = pregame
+        self.customize_wizards = customize_wizards
 
         self._winner = None
         self._loser = None
@@ -39,11 +61,11 @@ class Gamemaster:
 
         self._expiring_spells = []
 
-        self._NUMBER_OF_WIZARDS = 2
+        self._NUMBER_OF_WIZARDS = players
 
         self._server = None
-        self._HOST          = "192.168.0.111"
-        self._PORT          = 12345
+        self._HOST          = host
+        self._PORT          = port
         self._ENC           = "utf-8"
         self._BUFFSIZE      = 1024
 
@@ -61,7 +83,9 @@ class Gamemaster:
         # Wait for incoming connections and assign the sockets to the wizards.
         self.wait_for_connections()
 
-        self.customize()      # customize wizards. technically polish phase
+        if self.customize_wizards:
+            log.debug("Customizing Wizards")
+            self.customize()      # customize wizards. technically polish phase
 
         """@
         for wizard in self.wizards:
@@ -69,7 +93,9 @@ class Gamemaster:
             break
         """
 
-        self.pregame_flavor()
+        if self.pregame:
+            log.debug("Starting pregame")
+            self.pregame_flavor()
 
     def welcome(self):
 
@@ -110,11 +136,11 @@ class Gamemaster:
 
         self.server.bind(addr)
 
-        self.server.listen(2)        
+        self.server.listen(self._NUMBER_OF_WIZARDS)
 
         c_list = []
 
-        print("Waiting for connections.")
+        log.info(f"Listening for {self._NUMBER_OF_WIZARDS} players on {addr}")
 
         while len(c_list) < self._NUMBER_OF_WIZARDS:
             c, addr = self.server.accept()
@@ -4056,4 +4082,5 @@ def main():
     gm.setup_game()     # create wizards, customize, etc
     gm.play_game()      # see play_game() function for further details
 
-main()
+if __name__ == '__main__':
+    main()
