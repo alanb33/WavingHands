@@ -1,4 +1,4 @@
-from targetable import Targetable
+from waving_hands.targetable import Targetable
 
 class Minion(Targetable):
 

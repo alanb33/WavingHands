@@ -1,4 +1,4 @@
-from spell import Spell
+from waving_hands.spell import Spell
 
 class SpellbookClient:
 

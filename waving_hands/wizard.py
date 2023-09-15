@@ -1,9 +1,10 @@
 from random import randint
 
-from hand import Hand
-from spellbook_client import SpellbookClient
-from spellbook import Spellbook
-from targetable import Targetable
+from waving_hands.hand import Hand
+from waving_hands.spellbook_client import SpellbookClient
+from waving_hands.spellbook import Spellbook
+from waving_hands.targetable import Targetable
+from waving_hands.config import DATA
 
 class Wizard(Targetable):
 
@@ -25,7 +26,7 @@ class Wizard(Targetable):
         self._color = "blue"
         self._left = Hand()
         self._right = Hand()
-        self._spellbook = Spellbook('./spelllist.txt')
+        self._spellbook = Spellbook(DATA["spellbook"])
         self._spellbook_client = SpellbookClient(self._spellbook.spell_list)
         self._taunt = "I forgot what I was going to say."
         self._victory = "It looks like I win again."
