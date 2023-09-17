@@ -14,3 +14,11 @@ Then do a developer install. This will give you the `waving-hands` command you c
 
     python setup.py develop
     waving-hands
+
+
+### Testing
+
+Use pytest for testing:
+
+    pip install pytest
+    pytest
