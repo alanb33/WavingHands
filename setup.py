@@ -18,6 +18,7 @@ setuptools.setup(
     keywords="waving hands turnbased",
     url="https://github.com/alanb33/WavingHands",
     packages=setuptools.find_packages(),
+    include_package_data=True,
     entry_points={
         "console_scripts": ["waving-hands = waving_hands.waving_hands:main",],
     },
