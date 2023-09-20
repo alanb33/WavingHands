@@ -13,7 +13,7 @@ setuptools.setup(
         "P2P Multiplayer Python implementation of Richard Bartle's Waving Hands"
     ),
     long_description=readme,
-    long_descritpion_content_type="text/plain",
+    long_description_content_type='text/plain',
     license="GNUv3",
     keywords="waving hands turnbased",
     url="https://github.com/alanb33/WavingHands",
