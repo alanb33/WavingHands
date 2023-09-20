@@ -21,5 +21,15 @@ setuptools.setup(
     entry_points={
         "console_scripts": ["waving-hands = waving_hands.waving_hands:main",],
     },
-    classifiers=[],
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Environment :: Console",
+        "Framework :: Pytest",
+        "Intended Audience :: End Users/Desktop",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Topic :: Games/Entertainment :: Turn Based Strategy"
+    ],
 )
