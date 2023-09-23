@@ -1,13 +1,18 @@
 import os
 import setuptools
-from waving_hands import version
 
 with open("README.md") as f:
     readme = f.read()
 
+# Single source of truth for version -- snippet by NickolausDS
+version_ns = {}
+with open(os.path.join("waving_hands", "version.py")) as f:
+    exec(f.read(), version_ns)
+version = version_ns["__version__"]
+
 setuptools.setup(
     name="waving_hands",
-    version=version.__version__,
+    version=version,
     author="Alan Bailey",
     author_email="",
     description=(
