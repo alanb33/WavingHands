@@ -1,12 +1,13 @@
 import os
 import setuptools
+from waving_hands import __version__
 
 with open("README.md") as f:
     readme = f.read()
 
 setuptools.setup(
     name="waving_hands",
-    version="0.1.0",
+    version=__version__,
     author="Alan Bailey",
     author_email="",
     description=(
