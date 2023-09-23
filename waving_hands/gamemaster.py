@@ -10,7 +10,7 @@ from waving_hands.elemental import Elemental
 from waving_hands.minion import Minion
 from waving_hands.targetable_client import TargetableClient
 from waving_hands.wizard import Wizard
-from waving_hands import groblenames
+from waving_hands import groblenames, server
 
 log = logging.getLogger(__name__)
 
@@ -63,25 +63,17 @@ class Gamemaster:
 
         self._NUMBER_OF_WIZARDS = players
 
-        self._server = None
-        self._HOST          = host
-        self._PORT          = port
-        self._ENC           = "utf-8"
-        self._BUFFSIZE      = 1024
-
-    @property
-    def server(self):
-        return self._server_socket
-
-    @server.setter
-    def server(self, socket):
-        self._server_socket = socket
+        self.server = server.Server(host, port)
 
     def setup_game(self):
     
         self.create_wizards() # create wizards, populate spellbook
         # Wait for incoming connections and assign the sockets to the wizards.
-        self.wait_for_connections()
+        clients = self.server.wait_for_connections(minimum_clients=self._NUMBER_OF_WIZARDS)
+        if len(clients) != len(self.wizards):
+            log.warning(f"Connected clients {len(clients)} do not match expected wizards {len(self.wizards)}!")
+        for wiz, cli in zip(self.wizards, clients):
+            wiz.client = cli
 
         if self.customize_wizards:
             log.debug("Customizing Wizards")
@@ -123,46 +115,6 @@ class Gamemaster:
         for line in welcome_msg:
             for client in c_list:
                 client.send(line.encode(self._ENC))
-
-    def wait_for_connections(self):
-
-        # First, open the network socket.
-
-        self.server = socket.socket()
-
-        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
-        addr = (self._HOST, self._PORT)
-
-        self.server.bind(addr)
-
-        self.server.listen(self._NUMBER_OF_WIZARDS)
-
-        c_list = []
-
-        log.info(f"Listening for {self._NUMBER_OF_WIZARDS} players on {addr}")
-
-        while len(c_list) < self._NUMBER_OF_WIZARDS:
-            c, addr = self.server.accept()
-            print("Connection accepted from " + str(addr))
-            c_list.append(c)
-            if len(c_list) < self._NUMBER_OF_WIZARDS:
-                self.wait_msg(c, "Waiting for challenger...")
-
-        for client in c_list:
-            for wizard in self.wizards:
-                if not wizard.client:
-                    wizard.client = client
-                    break
-
-    def close_connections(self):
-
-        for wizard in self.wizards:
-            wizard.client.shutdown(1)
-            wizard.client.close()
-
-        self.server.shutdown(1)
-        self.server.close()
 
     def create_wizards(self):
 
@@ -212,111 +164,54 @@ class Gamemaster:
 
         return None
 
+    def get_enemy_wizard(self, wizard: Wizard) -> None:
+        """Get an enemy wizard from this wizard"""
+        if len(self.wizards) > 2:
+            log.warning(f"There are more than two wizards! "
+                        "Cannot distinguish particular wizard enemies!")
+
+        for w in self.wizards:
+            if w != wizard:
+                return wizard
+        log.warning(f"No enemy wizards found for wizard {wizard}")
+        return None
+
     def customize(self):
+        for wizard in self.wizards:
+            wizard.clear_slate()
 
-        # Wizard customization options for fun.
-        # This phase is skipped during development because of the time
-        # required.
+        server_responses = self.server.get_from_clients(
+            "CUSTOMIZE", lambda c: self.get_wizard_from_client(c).is_ready()
+        )
 
-        c_list = self.get_clients()
-
-        for client in c_list:
-            client.send("CUSTOMIZE".encode(self._ENC))
-
-        customized = []
-
-        while len(customized) < 2:
-
-            rlist, wlist, elist = select.select( c_list, [], [] )
-
-            for client in rlist:
-                if client not in customized:
-
-                    cust_d = self.recv(client)
-                    cust_d = self.depickle(cust_d)
-
-                    wizard = self.get_wizard_from_client(client)
-                    
-                    wizard.name = cust_d["name"]
-                    wizard.color = cust_d["color"]
-                    wizard.taunt = cust_d["taunt"]
-                    wizard.victory = cust_d["victory"]
-                    
-                    """
-                    spellbook_c = self.pickle(wizard.spellbook_client)
-                    print("Size of spellbook: " + str(sys.getsizeof(spellbook_c)))
-                    print("Sending clientside spellbook to " + wizard.name)
-                    wizard.client.send(spellbook_c, socket.MSG_WAITALL)
-
-                    sb_confirm = self.recv(client)
-                    if self.response(sb_confirm, "Client died before spellbook was fully sent."):
-                        sb_confirm = self.dec(sb_confirm)
-                        if sb_confirm == "ACK_SPELLBOOK":
-                            print("Client confirms spellbook received.")
-                        else:
-                            raise ValueError("Client sent [" + sb_confirm + "] when ACK_SPELLBOOK was expected.")
-
-                    """
-
-                    customized.append(client)
-
-                    print("Received customization data from " + wizard.name)
-
-                    if len(customized) < 2:
-                        self.wait_msg(client, "Waiting for challenger to finish customization...")
-                    else:
-                        break
-
-    def response(self, data, msg=""):
-
-        """ Kills the connection if the data is blank, otherwise returns True. """
-
-        
-
-        if self.dead_response(data):
-            if msg:
-                print(msg)
-            self.kill_connection()
-        
-        return True
-
-    def wait_msg(self, client, msg=""):
-
-        if msg == "":
-            self.msg_client_g("Waiting on other wizards...", client)
-        else:
-            self.msg_client_g(msg, client)
+        for client, message in server_responses:
+            wizard = self.get_wizard_from_client(client)
+            try:
+                # Passing in ** keyword arguments isn't great here because we haven't verified that the stuff
+                # inside message is valid or not. It could be junk! In which case we get a nasty exception here.
+                wizard.set_slate(**message)
+            except Exception as e:
+                log.exception(e)
+                log.error(
+                    "Bad code is coming back to haunt you. Received unexpected state when deserializing client response during customization"
+                )
 
     def pregame_flavor(self):
 
-        c_list = self.get_clients()
+        pf = ["A storm rages over a windswept plain.",
+                "Despite the torrential downpour, two figures can be seen approaching each other.",
+                "They stop at a distance, waiting. Thunder rumbles overhead.\n"]
 
-        for client in c_list:
-            self.msg_client("PREGAME", client)
+        for wizard in self.wizards:
+            pf.append(f"A wizard in {wizard.color} robes steps forward.")
+            pf.append(f'"I am {wizard.name}. {wizard.taunt}"')
 
-            ack = self.recv(client)
-            if self.response(ack, "Client died during PREGAME request"):
-                ack = self.dec(ack)
+        pf.append("\nWith a flash of lightning, the battle begins!")
 
-                if ack == "PREGAME_ACK":
+        self.server.message_clients_command("PREGAME", pf)
 
-                    pf = ["A storm rages over a windswept plain.",
-                          "Despite the torrential downpour, two figures can be seen approaching each other.",
-                          "They stop at a distance, waiting. Thunder rumbles overhead.\n"]
 
-                    for wizard in self.wizards:
-                        pf.append("A wizard in " + wizard.color + " robes steps forward.")
-                        pf.append("\"I am " + wizard.name + ". " + wizard.taunt + "\"")
-
-                    pf.append("\nWith a flash of lightning, the battle begins!")
-
-                    self.msg_client_pp(pf, client)
-                    self.recv(client)
-
-        #for wizard in self.wizards:
-        #    wizard.introduce()
-
-    def play_game(self):
+    def play_game(self, max_turns=0):
 
         """
         
@@ -426,93 +321,6 @@ class Gamemaster:
     def add_spell_reflection(self, spell_tuple):
         self._spells_reflected.append(spell_tuple)
 
-    def msg_clients(self, msg):
-
-        """ Encode the message and send it to all clients. """
-
-        c_list = self.get_clients()
-
-        for client in c_list:
-            client.send(msg.encode(self._ENC))
-
-    def recv(self, client, buff=0):
-
-        """ Receive any data for processing. """
-
-        if buff == 0:
-            buff = self._BUFFSIZE
-
-        return client.recv(buff)
-
-    def dead_response(self, data):
-
-        if data == b'':
-            return True
-        else:
-            return False
-
-    def kill_connection(self):
-
-        print("Server shutting down.")
-
-        c_list = self.get_clients()
-
-        print("Killing clients.")
-
-        for client in c_list:
-            client.shutdown(1)
-            client.close()
-
-        print("Killing server.")
-
-        self.server.shutdown(1)
-        self.server.close()
-
-        print("Server shut down.")
-
-        sys.exit()
-
-    def msg_client_g(self, msg, client):
-
-        """ Send a generic string to the client. """
-
-        self.msg_client("MSG", client)
-        msg_ack = self.recv(client)
-
-        if self.dead_response(msg_ack):
-            self.kill_connection()
-        else:
-            msg_ack = self.dec(msg_ack)
-            if msg_ack == "ACK_MSG":
-                self.msg_client(msg, client)
-                msg_ackack = self.recv(client)
-
-                if self.dead_response(msg_ackack):
-                    # Client is disconnected
-                    pass
-                else:
-                    pass
-
-    def msg_client(self, msg, client):
-
-        """ Encode the message (as a string) and send it to the client. """
-
-        print("Sending " + msg + " to client.")
-        client.send(msg.encode(self._ENC))
-
-    def msg_client_pp(self, msg, client):
-
-        """ Pickle an item and send it to the client. """
-
-        msg = self.pickle(msg)
-        client.send(msg)
-
-    def msg_client_p(self, msg, client):
-
-        """ Send the client a pickled item. """
-
-        client.send(msg)
-
     def get_gestures(self):
 
         # Receive the wizard's gestures for this turn.
@@ -553,201 +361,53 @@ class Gamemaster:
             if not wizard.timestopped:
                 self.broadcast_gestures(wizard)
 
-    def dec(self, msg):
-
-        """ Decode encoded string and return it. """
-
-        return msg.decode(self._ENC)
-
-    def enc(self, msg):
-
-        """ Encode string and return it. """
-
-        return msg.encode(self._ENC)
-
-    def depickle(self, pickled_item):
-
-        """ Return the depickled version of the item. """
-
-        return pickle.loads(pickled_item)
-
-    def pickle(self, item):
-
-        """ Return the pickled version of the item. """
-
-        return pickle.dumps(item)
-
-
     def get_client_gestures(self):
+        clients_finished_turn = {}
+        server_responses = self.server.get_from_clients(
+            "GET_GESTURES", lambda c: clients_finished_turn.get(c) is True
+        )
 
-        required_submissions = self._NUMBER_OF_WIZARDS
+        for client, command in server_responses:
+            wizard = self.get_wizard_from_client(client)
+            log.debug(f"Received {command} from {wizard}.")
+            if command == "GESTURES_COMPLETE":
+                self.server.msg_client("RECEIVE_GESTURES", client)
+                wizard.c_hands = self.server.get_client_message(client)
+                clients_finished_turn[client] = True
+                if len(clients_finished_turn) < self._NUMBER_OF_WIZARDS:
+                    self.server.wait_msg(client, "Waiting for challenger to submit gestures...")
+            else:
+                result = self.get_wizard_status_commands(wizard)[command]
+                self.server.msg_client_pp(result, client)
+        
+        log.info(f"Gestures completed for wizards {self.wizards}")
 
-        c_list = self.get_clients()
+    def get_monsters(self) -> dict:
+        monsters = {}
+        for wizard in self.wizards:
+            for minion in wizard.minions:
+                monsters[minion.name] = minion.master.name
 
-        self.msg_clients("GET_GESTURES")
+        if self.field_elemental:
+            monsters[self.field_elemental.name.title()] = "nobody"
+        return monsters
 
-        self.handle_client_gestures_and_status(c_list, required_submissions)
-
-    def handle_client_gestures_and_status(self, c_list, required_submissions):
-
-        gestures_got = []
-
-        while len(gestures_got) < required_submissions:
-
-            rlist, wlist, elist = select.select( c_list, [], [] )
-
-            for client in rlist:
-
-                request = client.recv(self._BUFFSIZE)
-                if self.response(request):
-
-                    request = request.decode(self._ENC)
-
-                    wizard = self.get_wizard_from_client(client)
-
-                    if request == "STATUS_AMNESIA":
-
-                        print("Received STATUS_AMNESIA from " + wizard.name)
-                        status_amnesia = self.pickle(wizard.amnesiac)
-                        self.msg_client_p(status_amnesia, client)
-                        print("Sent amnesia status [" + str(wizard.amnesiac) + "] to " + wizard.name)
-
-                    if request == "STATUS_BLIND":
-
-                        print("Received STATUS_BLIND from " + wizard.name)
-                        status_blind = self.pickle(wizard.blinded)
-                        self.msg_client_p(status_blind, client)
-                        print("Sent blind status [" + str(wizard.afraid) + "] to " + wizard.name)
-
-                    if request == "STATUS_CHARMED":
-
-                        print("Received STATUS_CHARMED from " + wizard.name)
-                        if wizard.charmed_hand:
-                            charmed = True
-                        else:
-                            charmed = False
-                        status_charmed = self.pickle([charmed, wizard.charmed_hand])
-                        self.msg_client_p(status_charmed, client)
-                        print("Sent charmed status [" + str(charmed) + "] to " + wizard.name)
-
-                    if request == "STATUS_CONFUSION":
-
-                        print("Received STATUS_CONFUSION from " + wizard.name)
-                        status_confusion = self.pickle(wizard.confused)
-                        self.msg_client_p(status_confusion, client)
-                        print("Sent confusion status [" + str(wizard.confused) + "] to " + wizard.name)
-
-                    if request == "STATUS_FEAR":
-
-                        print("Received STATUS_FEAR from " + wizard.name)
-                        status_fear = self.pickle(wizard.afraid)
-                        self.msg_client_p(status_fear, client)
-                        print("Sent fear status [" + str(wizard.afraid) + "] to " + wizard.name)
-
-                    if request == "STATUS_HASTE":
-
-                        print("Received STATUS_HASTE from " + wizard.name)
-                        status_haste = self.pickle(wizard.hasted)
-                        self.msg_client_p(status_haste, client)
-                        print("Sent haste status [" + str(wizard.hasted) + "] to " + wizard.name)
-
-                    if request == "STATUS_HP":
-
-                        print("Received STATUS_HP from " + wizard.name)
-                        status_hp = self.pickle(wizard.hp)
-                        self.msg_client_p(status_hp, client)
-                        print("Sent HP status [" + str(wizard.hp) + "] to " + wizard.name)
-
-                    if request == "STATUS_ENEMY_HP":
-
-                        who_wiz_hp = 14
-
-                        for who_wizard in self.wizards:
-                            if who_wizard != wizard:
-                                who_wiz_hp = who_wizard.hp
-                                break
-
-                        print("Received STATUS_HP from " + wizard.name)
-                        status_enemy_hp = self.pickle(who_wiz_hp)
-                        self.msg_client_p(status_enemy_hp, client)
-                        print("Sent enemy HP status [" + str(who_wiz_hp) + "] to " + wizard.name)
-
-                    if request == "STATUS_MONSTERS":
-
-                        # name:master
-                        monsters = {}
-
-                        for wizard in self.wizards:
-                            for minion in wizard.minions:
-                                monsters[minion.name] = minion.master.name
-
-                        if self.field_elemental:
-                            monsters[self.field_elemental.name.title()] = "nobody"
-
-                        print("Received STATUS_MONSTERS from " + wizard.name)
-                        status_monsters = self.pickle(monsters)
-                        self.msg_client_p(status_monsters, client)
-                        print("Sent monster status to " + wizard.name)
-
-                    if request == "STATUS_PARALYZED":
-
-                        p_hand = ""
-                        if wizard.paralyzed_hand:
-                            p_hand = wizard.paralyzed_hand
-
-                        print("Received STATUS_PARALYZED from " + wizard.name)
-                        paralyzed = False
-                        if p_hand:
-                            paralyzed = True
-                        status_paralyzed = self.pickle([paralyzed, p_hand])
-                        self.msg_client_p(status_paralyzed, client)
-                        print("Sent paralysis status [" + str(paralyzed) + "], [" + p_hand + "] to " + wizard.name)
-
-                    if request == "STATUS_TIMESTOP":
-
-                        print("Received STATUS_TIMESTOP from " + wizard.name)
-                        status_timestop = self.pickle(wizard.timestopped)
-                        self.msg_client_p(status_timestop, client)
-                        print("Sent timestop status [" + str(wizard.timestopped) + "]")
-
-                    if request == "REQUEST_HISTORY_SELF":
-
-                        print("Received REQUEST_HISTORY_SELF from " + wizard.name)
-                        
-                        history_dict = {"left":"", "right":""}
-
-                        hands = ("left", "right")
-                        for hand in hands:
-                            history_dict[hand] = wizard.get_hand(hand).show_history()
-                            
-                        history_dict_p = self.pickle(history_dict)
-                        self.msg_client_p(history_dict_p, client)
-
-                        print("Pickled hand history sent to " + wizard.name)
-
-                    if request == "REQUEST_HISTORY_OTHERS":
-
-                        print("Received REQUEST_HISTORY_OTHERS from " + wizard.name)
-
-                        history_dict = wizard.perceived_history
-
-                        history_dict_p = self.pickle(history_dict)
-                        self.msg_client_p(history_dict_p, client)
-
-                        print("Pickled perceived history sent to " + wizard.name)
-
-                    if request == "GESTURES_COMPLETE":
-
-                        print("Received GESTURES_COMPLETE from " + wizard.name)
-                        self.msg_client("RECEIVE_GESTURES", client)
-                        print("Sent RECEIVE_GESTURES to " + wizard.name)
-                        gestures_dict = client.recv(self._BUFFSIZE)
-                        gestures_dict = self.depickle(gestures_dict)
-                        wizard.c_hands = gestures_dict
-                        gestures_got.append(client)
-
-                        if len(gestures_got) < required_submissions:
-                            self.wait_msg(client, "Waiting for challenger to submit gestures...")
+    def get_wizard_status_commands(self, wizard):
+       return {
+            "STATUS_AMNESIA": wizard.amnesiac,
+            "STATUS_BLIND": wizard.blinded,
+            "STATUS_CHARMED": [wizard.charmed_hand, wizard.charmed_hand],
+            "STATUS_CONFUSION": wizard.confused,
+            "STATUS_FEAR": wizard.afraid,
+            "STATUS_HASTE": wizard.hasted,
+            "STATUS_HP": wizard.hp,
+            "STATUS_ENEMY_HP": self.get_enemy_wizard(wizard).hp,
+            "STATUS_MONSTERS": self.get_monsters(),
+            "STATUS_PARALYZED": [wizard.paralyzed_hand, wizard.paralyzed_hand],
+            "STATUS_TIMESTOP": wizard.timestopped,
+            "REQUEST_HISTORY_SELF": wizard.hands_history,
+            "REQUEST_HISTORY_OTHERS": wizard.perceived_history,
+        }
 
     def get_gestures_from_client(self, client_to_get):
 
@@ -869,7 +529,7 @@ class Gamemaster:
         hands = ("left", "right")
 
         for hand in hands:
-            print("Gesture flavor: " + wizard.name + "\'s " + hand + " is " + wizard.get_latest_gesture(hand))
+            log.debug(f"Gesture flavor: {wizard}\'s {hand} is {wizard.get_latest_gesture(hand)}")
 
         if left == right:
             # The same gesture performed twice.
@@ -1032,84 +692,30 @@ class Gamemaster:
     def add_flavor(self, line):
         self._flavor_list.append(line)
 
-    def msg_client_i(self, int_to_pass, client):
-
-        bytes_i = (int_to_pass).to_bytes(4, "big")
-        client.send(bytes_i)
-
     def print_flavor_messages(self):
 
         """ Send the list of flavor messages to each client. """
+        payload = self.server.pickle(self.flavor_list + ["\0"])
+        clients_finished_turn = {}
+        data_sent = {}
+        server_responses = self.server.get_from_clients(
+            "PRINT_FLAVOR", lambda c: clients_finished_turn.get(c) is True
+        )
+        for client, message in server_responses:
+            if message == "PRINT_FLAVOR_ACK":
+                wizard = self.get_wizard_from_client(client)
+                self.server.msg_client_i(len(payload), client)
+            elif message in ["SIZE_ACK", "MORE_DATA"]:
+                sent_size = data_sent.get(client, 0)
+                data_sent[client] = client.send(payload[sent_size:])
+            elif message == "DATA_DONE":
+                pass
+            elif message == "NEXT_TURN_READY":
+                clients_finished_turn[client] = True
+            else:
+                log.error(f"Received unexpected command {message}! Ignoring...")
 
-        flavor_p = []
-
-        for line in self.flavor_list:
-            flavor_p.append(line)
-
-        if not flavor_p:
-            flavor_p.append("Nothing happened this round.")
-
-        #for i in range(10000):
-        #    flavor_p.append("longlonglonglonglonglonglonglonglong " + str(i))
-
-        #flavor_p.append("over!")
-
-        for line in flavor_p:
-            print(line)
-
-        flavor_p.append("\0")
-
-        flavor_p = self.pickle(flavor_p)
-        
-
-        print("Sending PRINT_FLAVOR to clients.")
-        self.msg_clients("PRINT_FLAVOR")
-
-        c_list = self.get_clients()
-        ready_list = []
-
-        while len(ready_list) < self._NUMBER_OF_WIZARDS:
-
-            rlist, wlist, elist = select.select( c_list, [], [] )
-
-            
-
-            for client in rlist:
-
-                ack = self.recv(client)
-                if self.response(ack, "Client died during flavor phase."):
-                    ack = self.dec(ack)
-
-                    if ack == "PRINT_FLAVOR_ACK":
-                        print("Received PRINT_FLAVOR_ACK from " + self.get_wizard_from_client(client).name)
-                        size = len(flavor_p)
-                        wiz = self.get_wizard_from_client(client).name
-                        print("Outgoing size is " + str(size) + " for " + wiz)
-                        self.msg_client_i(size, client)
-                        if self.response(self.recv(client), "Client died before sending SIZE_ACK"):
-                            sent_size = 0
-                            while sent_size < size:
-                                sent = client.send(flavor_p[sent_size:])
-                                print("Sent: " + str(sent) + " to " + wiz)
-                                sent_size += sent
-                                if sent == 0:
-                                    break
-                                confirmation = self.recv(client)
-                                if self.response(confirmation):
-                                    if self.dec(confirmation) == "MORE_DATA":
-                                        print("Received MORE_DATA from " + wiz)
-                                    if self.dec(confirmation) == "DATA_DONE":
-                                        print("Received DATA_DONE from " + wiz)
-                                        break
-                            sent_size = 0
-                            #self.msg_client_p(flavor_p, client)
-
-                    if ack == "NEXT_TURN_READY":
-                        print("Received NEXT_TURN_READY from " + self.get_wizard_from_client(client).name)
-                        ready_list.append(client)
-
-                        if len(ready_list) < self._NUMBER_OF_WIZARDS:
-                            self.wait_msg(client, "Waiting for challenger to review round end...")
+        log.info(f"Finished sending results of turn to {self.wizards}")
 
     @property
     def stab_targets(self):
@@ -1172,13 +778,11 @@ class Gamemaster:
             if wizard.timestopped:
                 timestopped_wizard = wizard
 
-        for client in self.get_clients():
-            self.wait_msg(client, "Waiting for challenger to submit additional commands...")
-
+        self.server.message_clients("Waiting for challenger to submit additional commands...")
         if timestopped_wizard:
             if wizard in self.wizards:
                 if wizard != timestopped_wizard:
-                    self.wait_msg(wizard.client, "Waiting for a timestopped turn (additional commands)...")
+                    self.server.wait_msg(wizard.client, "Waiting for a timestopped turn (additional commands)...")
 
         if timestopped_wizard:
             self.determine_spellcasts_individual(timestopped_wizard)
@@ -1194,7 +798,7 @@ class Gamemaster:
 
     def handle_additional_gestures_individual(self, wizard):
 
-        print("in hagi for " + wizard.name)
+        log.debug("in hagi for {wizard.name}")
 
         if wizard.hasted:
             #self.add_flavor(wizard.name + " makes a second pair of gestures due to their magical haste!")
@@ -1247,8 +851,6 @@ class Gamemaster:
                 stab_target = self.get_target(wizard, "stab")
             wizard.stab_victim = stab_target
             self.add_stab_target(wizard, stab_target)
-
-        print("hagi ends")
 
         # self.command_existing_monsters()
 
