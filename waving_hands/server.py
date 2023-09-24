@@ -1,5 +1,5 @@
 import logging
-import socket 
+import socket
 import select
 import pickle
 import typing as t
@@ -8,7 +8,6 @@ log = logging.getLogger(__name__)
 
 
 class Server:
-
     def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
@@ -24,7 +23,7 @@ class Server:
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         addr = (self.host, self.port)
         self.server.bind(addr)
-        self.server.listen(minimum_clients)        
+        self.server.listen(minimum_clients)
 
         log.info(f"Waiting for connections from {minimum_clients} hosts.")
 
@@ -48,7 +47,7 @@ class Server:
             client.send(client_command.encode(self.ENCODING))
 
         while not all(client_done(c) for c in self.clients):
-            rlist, wlist, elist = select.select( self.clients, [], [] )
+            rlist, wlist, elist = select.select(self.clients, [], [])
             for client in rlist:
                 message = self.get_client_message(client)
                 yield client, message
@@ -68,50 +67,57 @@ class Server:
     def _get_command_default_complete(self, command):
         return f"{command}_COMPLETE"
 
-    def _process_command(self, client: socket.socket, command: str, 
-                            messages: t.List[str], command_ack: t.Optional[str] = None, command_complete: t.Optional[str] = None):
+    def _process_command(
+        self,
+        client: socket.socket,
+        command: str,
+        messages: t.List[str],
+        command_ack: t.Optional[str] = None,
+        command_complete: t.Optional[str] = None,
+    ):
         command_ack = command_ack or self._get_command_default_ack(command)
         received_message = self.get_client_message(client)
         if received_message != command_ack:
-            log.warning(f"Command {command} received {received_message} instead of the expected response {command_ack} from client {client}")
+            log.warning(
+                f"Command {command} received {received_message} instead of the expected response {command_ack} from client {client}"
+            )
 
         self.msg_client_pp(messages, client)
         complete_msg = self.get_client_message(client)
-        
+
         com_c = command_complete or self._get_command_default_complete(command)
         if complete_msg != com_c:
-            log.warning(f"Command {command} received {complete_msg} instead of the expected"
-                "complete command {com_c} by client {client}")
-        log.debug(f'Client command {command} completed successfully.')
+            log.warning(
+                f"Command {command} received {complete_msg} instead of the expected"
+                "complete command {com_c} by client {client}"
+            )
+        log.debug(f"Client command {command} completed successfully.")
 
     def message_clients_command(self, command: str, messages: t.List[str]):
         self.msg_clients(command)
         for client in self.clients:
             return self._process_command(client, command, messages)
-    
-    def message_client_command(self, client: socket.socket, command: str, messages: t.List[str]):
+
+    def message_client_command(
+        self, client: socket.socket, command: str, messages: t.List[str]
+    ):
         self.wait_msg(client, command)
         return self._process_command(client, command, messages)
-
 
     def message_clients(self, message: str):
         for client in self.clients:
             self.wait_msg(client, message)
 
-    
     def check_response(self, data, msg=""):
 
         """ Kills the connection if the data is blank, otherwise returns True. """
-
-        
 
         if self.dead_response(data):
             if msg:
                 print(msg)
             self.kill_connection()
-        
+
         return True
-                    
 
     def depickle(self, pickled_item):
 
@@ -131,7 +137,6 @@ class Server:
         else:
             self.msg_client_g(msg, client)
 
-
     def msg_clients(self, msg):
         """ Encode the message and send it to all clients. """
         for client in self.clients:
@@ -144,7 +149,7 @@ class Server:
 
     def dead_response(self, data):
 
-        if data == b'':
+        if data == b"":
             return True
         else:
             return False
@@ -190,7 +195,6 @@ class Server:
                     pass
                 else:
                     pass
-    
 
     def msg_client(self, msg, client):
 
@@ -212,7 +216,6 @@ class Server:
 
         client.send(msg)
 
-
     def close_connections(self):
 
         for wizard in self.wizards:
@@ -221,4 +224,3 @@ class Server:
 
         self.server.shutdown(1)
         self.server.close()
-        

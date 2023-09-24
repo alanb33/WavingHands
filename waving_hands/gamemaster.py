@@ -241,8 +241,10 @@ class Gamemaster:
         """
 
         self.playing = True
+        turn = 0
 
         while self.playing:
+            turn += 1
 
             self.get_gestures()
             self.get_additional_gestures()
@@ -258,6 +260,11 @@ class Gamemaster:
                 print("Thank you for playing Richard Bartle's Spellbinder!")
                 self.playing = False
 
+            log.info(f"Turn {turn}: {tuple(w.basic_stats for w in self.wizards)}")
+
+            # IF max turns was set above zero, turns will be tracked and end the game on max_turns
+            if turn >= max_turns > 0:
+                self.playing = False
         
 
     def cleanup(self):
