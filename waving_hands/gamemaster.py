@@ -3140,55 +3140,17 @@ class Gamemaster:
 
         client = wizard.client
 
-        self.msg_client("MULTIPLE_SPELLS", client)
-        ack = self.recv(client)
+        message = [[s[1].name, hand_casting] for s in spell_list]
+        self.server.message_client_command(wizard.client, "MULTIPLE_SPELLS", message)
+        response = self.server.get_client_message(wizard.client)
 
-        if self.response(ack, "Client did not reply to MULTIPLE_SPELLS request."):
-            ack = self.dec(ack)
+        for spell in spell_list:
+            if spell[1].name == response:
+                log.debug(f"{wizard} chose spell {spell}")
+                return spell
 
-            if ack == "MULTIPLE_SPELLS_ACK":
-                spell_names_l = []
-                for spell in spell_list:
-                    spell_name = spell[1]
-
-            # Appended tuple (wizard, spell)
-            # list full of tuples, string
-                    print("Appending " + spell_name.name)
-                    spell_names_l.append(spell_name.name)
-                
-                sl_p = self.pickle([spell_names_l, hand_casting])
-
-                self.msg_client_p(sl_p, client)
-                choice_name = self.recv(client)
-
-                if self.response(choice_name, "Client did not reply after sending pickled spell choices."):
-
-                    choice_name = self.dec(choice_name)
-
-                    for spell in spell_list:
-                        if spell[1].name == choice_name:
-                            return spell
-
-        """
-        print(wizard.name + ": Multiple spells can be casted with the gestures of your " + hand_casting + " hand.\n")
-
-        for i,spell_tuple in enumerate(spell_list, 1):
-            wizard, spell = spell_tuple
-            print(str(i) + ". " + spell.name)
-
-        while True:
-            choice = input("\nChoose a spell to cast: ")
-            try:
-                choice = int(choice) - 1
-                if choice >= 0 and choice < len(spell_list):
-                    return spell_list[choice]
-                else:
-                    print("Your choice is invalid.")
-            except ValueError:
-                print("Your choice is invalid.")
-
-        return None # Shouldn't happen.
-        """
+        log.warning(f"{wizard}: Failed to find chosen spell {response}")
+        return None
 
     @property
     def playing(self):
@@ -3561,6 +3523,19 @@ class Gamemaster:
         # First, turn the list of target objects into TargetableClients.
 
         targetables_c = self.targetables_to_targetableclients(self.targets)
+
+        self.server.message_client_command(attacker.client, "GET_TARGET", [targetables_c, attack])
+        target_name = self.server.get_client_message(attacker.client)
+
+        if target_name == "self":
+            return attacker
+        else:
+            for victim in self.targets:
+                if victim.name == target_name:
+                    return victim.name
+
+        log.warning(f"{wizard}: Failed to choose target, {response} does not exist!")
+        return None
 
         self.msg_client("GET_TARGET", attacker.client)
         ack = self.recv(attacker.client)
