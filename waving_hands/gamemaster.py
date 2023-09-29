@@ -208,8 +208,18 @@ class Gamemaster:
 
         pf.append("\nWith a flash of lightning, the battle begins!")
 
-        self.server.message_clients_command("PREGAME", pf)
+        clients_finished_turn = {}
+        server_responses = self.server.get_from_clients(
+            "PREGAME", lambda c: clients_finished_turn.get(c) is True
+        )
 
+        for client, command in server_responses:
+            wizard = self.get_wizard_from_client(client)
+            log.debug(f"Received {command} from wizard {wizard}.")
+            if command == "PREGAME_ACK":
+                self.server.msg_client_pp(pf, client)
+            elif command == "PREGAME_COMPLETE":
+                clients_finished_turn[client] = True
 
     def play_game(self, max_turns=0):
 
@@ -376,7 +386,7 @@ class Gamemaster:
 
         for client, command in server_responses:
             wizard = self.get_wizard_from_client(client)
-            log.debug(f"Received {command} from {wizard}.")
+            log.debug(f"Received {command} from wizard {wizard}.")
             if command == "GESTURES_COMPLETE":
                 self.server.msg_client("RECEIVE_GESTURES", client)
                 wizard.c_hands = self.server.get_client_message(client)

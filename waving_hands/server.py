@@ -44,13 +44,22 @@ class Server:
         """
         log.debug(f'Fetching responses from clients for command: "{client_command}"')
         for client in self.clients:
+            log.debug(f'Sending command: {client_command}')
             client.send(client_command.encode(self.ENCODING))
 
-        while not all(client_done(c) for c in self.clients):
+        done = set()
+        while set(self.clients) != done:
+            log.debug(f'Curr clients: {self.clients}, done: {done}')
             rlist, wlist, elist = select.select(self.clients, [], [])
-            for client in rlist:
+            for client in [c for c in rlist if c not in done]:
+
                 message = self.get_client_message(client)
                 yield client, message
+                if client_done(client):
+                    log.debug(f'Client has finished command {client_command}')
+                    done.add(client)
+                    log.debug(f'Have finished: {len(done)}')
+        log.debug(f'Completed for all users, command: {client_command}')
 
     def get_client_message(self, client: socket.socket) -> t.Any:
         message = client.recv(self.BUFFSIZE)
