@@ -110,12 +110,20 @@ class Server:
     def message_client_command(
         self, client: socket.socket, command: str, messages: t.List[str]
     ):
-        self.wait_msg(client, command)
+        self.message_client(client, command)
         return self._process_command(client, command, messages)
 
     def message_clients(self, message: str):
         for client in self.clients:
-            self.wait_msg(client, message)
+            self.message_client(client, message)
+
+    def message_client(self, client, message):
+        log.debug(f'Sending client {client} message {message}')
+        if not isinstance(message, str):
+            log.debug(f'Object found, Pickling!')
+            message = self.pickle(message)
+
+        client.send(message.encode(self.ENCODING))
 
     def check_response(self, data, msg=""):
 
@@ -139,22 +147,10 @@ class Server:
 
         return pickle.dumps(item)
 
-    def wait_msg(self, client, msg=""):
-
-        if msg == "":
-            self.msg_client_g("Waiting on other wizards...", client)
-        else:
-            self.msg_client_g(msg, client)
-
-    def msg_clients(self, msg):
-        """ Encode the message and send it to all clients. """
-        for client in self.clients:
-            client.send(msg.encode(self.ENCODING))
-
     def msg_client_i(self, int_to_pass, client):
 
         bytes_i = (int_to_pass).to_bytes(4, "big")
-        client.send(bytes_i)
+        self.message_client(client, message)
 
     def dead_response(self, data):
 
@@ -184,32 +180,11 @@ class Server:
 
         sys.exit()
 
-    def msg_client_g(self, msg, client):
-
-        """ Send a generic string to the client. """
-
-        self.msg_client("MSG", client)
-        msg_ack = client.recv(self.BUFFSIZE)
-
-        if self.dead_response(msg_ack):
-            self.kill_connection()
-        else:
-            msg_ack = msg_ack.decode(self.ENCODING)
-            if msg_ack == "ACK_MSG":
-                self.msg_client(msg, client)
-                msg_ackack = client.recv(self.BUFFSIZE)
-
-                if self.dead_response(msg_ackack):
-                    # Client is disconnected
-                    pass
-                else:
-                    pass
-
     def msg_client(self, msg, client):
 
         """ Encode the message (as a string) and send it to the client. """
 
-        log.debug(f"Sending {msg} to client.")
+        log.debug(f"Sending {msg} to client {client}.")
         client.send(msg.encode(self.ENCODING))
 
     def msg_client_pp(self, msg, client):

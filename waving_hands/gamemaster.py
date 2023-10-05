@@ -2225,66 +2225,11 @@ class Gamemaster:
         """
 
         client = caster.client
+        self.server.message_client_command(client, "ENCHANTMENT_CHARM_PERSON", target.name)
+        charmed_hand, charmed_gesture = self.server.get_client_message(client)
+        if charmed_gesture == "$":
+            target.charmed_stab_override = self.get_target(caster, "stab by " + target.name)
 
-        self.msg_client("ENCHANTMENT_CHARM_PERSON", client)
-        if self.response(self.recv(client), "Client died while server waiting for response after sending CHARM_PERSON"):
-            # Send the enemy name as an encoded string.
-            self.msg_client(target.name, client)
-            data_p = self.recv(client)
-            if self.response(data_p, "Client died while server waited on charm person choices."):
-                charmed_hand, charmed_gesture = self.depickle(data_p)
-                # We are expecting it in the form "left", "c" for example.
-                if charmed_gesture == "$":
-                    target.charmed_stab_override = self.get_target(caster, "stab by " + target.name)
-
-                charm_tuple = (charmed_hand.lower(), charmed_gesture.lower())
-
-                return charm_tuple
-
-        """
-        print(caster.name + ": Choose which of " + target.name + "\'s hands will be controlled.")
-        
-        caster.show_hands_history_others()
-
-        hands = ("Left", "Right")
-
-        for i,hand in enumerate(hands, 1):
-            print(str(i) + ". " + hand)
-
-        charmed_hand = ""
-        charmed_gesture = ""
-
-        while True:
-            try:
-                choice = int(input("Choose a hand (by number): "))
-                if choice == 1:
-                    charmed_hand = "Left"
-                    break
-                elif choice == 2:
-                    charmed_hand = "Right"
-                    break
-                else:
-                    print("Your choice is invalid.")
-            except ValueError:
-                print("Your choice is invalid.")
-
-        print(caster.name + ": Enter a gesture for " + target.name + "\'s " + charmed_hand.lower() + " hand.")
-
-        target.show_hands_history()
-
-        valid_gestures = ("f", "p", "s", "w", "d", "c", "$")
-
-        while True:
-            choice = input("Choose a gesture (f/p/s/w/d/c/$): ")
-            if choice.lower() in valid_gestures:
-                charmed_gesture = choice
-                if charmed_gesture == "$":
-                    target.charmed_stab_override = self.get_target(caster, "stab by Saruman")
-                break
-            else:
-                print("Your choice is invalid.")
-                """
-            
         charm_tuple = (charmed_hand.lower(), charmed_gesture.lower())
 
         return charm_tuple
@@ -3531,7 +3476,6 @@ class Gamemaster:
             passed an argument. """
 
         # First, turn the list of target objects into TargetableClients.
-
         targetables_c = self.targetables_to_targetableclients(self.targets)
 
         self.server.message_client_command(attacker.client, "GET_TARGET", [targetables_c, attack])
@@ -3542,92 +3486,11 @@ class Gamemaster:
         else:
             for victim in self.targets:
                 if victim.name == target_name:
+                    log.debug(f'Attacker {attacker} targeting {victim.name}')
                     return victim.name
 
         log.warning(f"{wizard}: Failed to choose target, {response} does not exist!")
         return None
-
-        self.msg_client("GET_TARGET", attacker.client)
-        ack = self.recv(attacker.client)
-
-        if self.response(ack, "Client died while sending ack for GET_TARGET"):
-            ack = self.dec(ack)
-            
-            if ack == "GET_TARGET_ACK":
-                # Send info about what the attack is and the targets list.
-                targets_p = self.pickle([targetables_c, attack])
-                self.msg_client_p(targets_p, attacker.client)
-
-                target = self.recv(attacker.client)
-                if self.response(target, "Client died while sending target choice."):
-
-                    # The client sent a string, so find out which target it applies to.
-                    target_name = self.dec(target)
-
-                    if target_name == "self":
-                        target = attacker
-                    else:
-                        for victim in self.targets:
-                            if victim.name == target_name:
-                                target = victim
-                                break
-        """
-        target = attacker
-
-        while True:
-            print(attacker.name + ": Who will be the target of the " + attack + "?")
-            
-            self.enumerate_targets()
-
-            choice = input("Choose target (leave blank or press enter for self): ")
-
-            if choice == "":
-                break
-
-            try:
-                if (int(choice) >= 1) and (int(choice) <= len(self.targets)):
-                    target = self.targets[int(choice)-1]
-                    if type(target) == Elemental:
-                        if "Groble" in attack:
-                            print("A groble-summoning spell cannot target an elemental.")
-                        elif attack == "Amnesia":
-                            print("An elemental cannot be made amnesiac.")
-                        elif attack == "Confusion":
-                            print("An elemental cannot be confused.")
-                        elif "Charm" in attack: # Charm Person, Charm Monster
-                            print("An elemental cannot be charmed.")
-                        elif attack == "Raise Dead":
-                            print("A non-wizard cannot wield the power to raise the dead.")
-                        elif attack == "Paralysis":
-                            print("An elemental cannot be paralyzed.")
-                        elif attack == "Fear":
-                            print("An elemental cannot feel fear.")
-                        elif attack == "Anti-spell":
-                            print("An elemental cannot be anti-spelled.")
-                        elif attack == "Delayed Effect":
-                            print("An elemental cannot cast spells.")
-                        else:
-                            break
-                    elif type(target) == Minion:
-                        if attack == "Raise Dead":
-                            print("A non-wizard cannot wield the power to raise the dead.")
-                        elif attack == "Anti-spell":
-                            print(target.name + ", a minion, cannot be anti-spelled.")
-                        elif attack == "Delayed Effect":
-                            print(target.name + " cannot cast spells.")
-                        else:
-                            break
-                    else:
-                        break
-                else:
-                    print("Invalid target \'" + choice + "\'.")
-            except ValueError:
-                print("Invalid target \'" + choice + "\'.")
-
-        print("")
-        """
-
-        return target
 
     def print_flavor_text(self, wizard, left, right):
 
