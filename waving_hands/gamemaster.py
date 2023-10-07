@@ -180,7 +180,7 @@ class Gamemaster:
         for wizard in self.wizards:
             wizard.clear_slate()
 
-        server_responses = self.server.get_from_clients(
+        server_responses = self.server.unstructured_command(
             "CUSTOMIZE", lambda c: self.get_wizard_from_client(c).is_ready()
         )
 
@@ -209,7 +209,7 @@ class Gamemaster:
         pf.append("\nWith a flash of lightning, the battle begins!")
 
         clients_finished_turn = {}
-        server_responses = self.server.get_from_clients(
+        server_responses = self.server.unstructured_command(
             "PREGAME", lambda c: clients_finished_turn.get(c) is True
         )
 
@@ -380,7 +380,7 @@ class Gamemaster:
 
     def get_client_gestures(self):
         clients_finished_turn = {}
-        server_responses = self.server.get_from_clients(
+        server_responses = self.server.unstructured_command(
             "GET_GESTURES", lambda c: clients_finished_turn.get(c) is True
         )
 
@@ -715,7 +715,7 @@ class Gamemaster:
         payload = self.server.pickle(self.flavor_list + ["\0"])
         clients_finished_turn = {}
         data_sent = {}
-        server_responses = self.server.get_from_clients(
+        server_responses = self.server.unstructured_command(
             "PRINT_FLAVOR", lambda c: clients_finished_turn.get(c) is True
         )
         for client, message in server_responses:
@@ -2225,8 +2225,7 @@ class Gamemaster:
         """
 
         client = caster.client
-        self.server.message_client_command(client, "ENCHANTMENT_CHARM_PERSON", target.name)
-        charmed_hand, charmed_gesture = self.server.get_client_message(client)
+        charmed_hand, charmed_gesture = self.server.command_client(client, "ENCHANTMENT_CHARM_PERSON", target.name)
         if charmed_gesture == "$":
             target.charmed_stab_override = self.get_target(caster, "stab by " + target.name)
 
@@ -3096,8 +3095,11 @@ class Gamemaster:
         client = wizard.client
 
         message = [[s[1].name, hand_casting] for s in spell_list]
-        self.server.message_client_command(wizard.client, "MULTIPLE_SPELLS", message)
-        response = self.server.get_client_message(wizard.client)
+        response = self.server.command_client(
+            wizard.client,
+            "MULTIPLE_SPELLS",
+            message
+        )
 
         for spell in spell_list:
             if spell[1].name == response:
@@ -3478,8 +3480,11 @@ class Gamemaster:
         # First, turn the list of target objects into TargetableClients.
         targetables_c = self.targetables_to_targetableclients(self.targets)
 
-        self.server.message_client_command(attacker.client, "GET_TARGET", [targetables_c, attack])
-        target_name = self.server.get_client_message(attacker.client)
+        target_name = self.server.command_client(
+            attacker.client,
+            "GET_TARGET",
+            [targetables_c, attack]
+            )
 
         if target_name == "self":
             return attacker
