@@ -21,6 +21,11 @@ class Spellbook:
     def spell_list(self, new_list):
         self._spell_list = new_list
 
+    def get_spell(self, name: str) -> Spell:
+        for spell in self.spell_list:
+            if spell.name == name:
+                return spell
+
     def populate(self):
         # the spellbook will create Spell() objects from the contents of the
         # given path_to_spellbook file.
