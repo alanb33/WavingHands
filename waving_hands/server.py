@@ -64,8 +64,8 @@ class Server:
 
             # This defines the base case for when the server should stop collecting messages
             # from a client -- when client is added to "done".
-            done = {}
-            server_responses = self.server.command_clients(
+            done = set()
+            server_responses = self.server.unstructured_command(
                 "SAY_HELLO", lambda client: client in done 
             )
 
@@ -82,10 +82,7 @@ class Server:
             the command.
         :yield: tuple: (client: socket, message: str)
         """
-        log.debug(f'Fetching responses from clients for command: "{command}"')
-        for client in self.clients:
-            log.debug(f"Sending command: {command}")
-            client.send(command.encode(self.ENCODING))
+        self.message_clients(command)
 
         done = set()
         while set(self.clients) != done:
@@ -141,7 +138,7 @@ class Server:
                 f"Command {command} received {received_message} instead of the expected response {command_ack} from client {client}"
             )
 
-        self.msg_client_pp(messages, client)
+        self.message_client(client, messages)
         complete_msg = self.get_client_message(client)
 
         com_c = command_complete or self._get_command_default_complete(command)
@@ -163,7 +160,7 @@ class Server:
         """
         message = client.recv(self.BUFFSIZE)
         try:
-            message = self.depickle(message)
+            message = pickle.loads(message)
         except pickle.UnpicklingError:
             message = message.decode(self.ENCODING)
         self.check_response(message, f"Client died during message {message}")
@@ -176,97 +173,67 @@ class Server:
         return f"{command}_COMPLETE"
 
     def message_clients(self, message: str):
+        """
+        Send a message to all clients in the server Message can be any entity, and will be automatically pickled if it
+        is not a string.
+        
+        :param client: Client to send the message
+        :param message: data to send to the client.
+        """
         for client in self.clients:
             self.message_client(client, message)
 
+    def encode_message(self, message: str):
+        """
+        Encode a message to be sent to a client. Typically should not be called externally.
+        
+        :param message: data to be encoded
+        """
+        return message.encode(self.ENCODING)
+
     def message_client(self, client, message):
+        """
+        Send a message to a given client. Message can be any entity, and will be automatically pickled if it
+        is not a string.
+        
+        :param client: Client to send the message
+        :param message: data to send to the client.
+        """
         log.debug(f"Sending client {client} message {message}")
         if not isinstance(message, str):
             log.debug(f"Object found, Pickling!")
-            message = self.pickle(message)
+            message = pickle.dumps(message)
 
-        client.send(message.encode(self.ENCODING))
+        client.send(self.encode_message(message))
 
     def check_response(self, data, msg=""):
-
         """ Kills the connection if the data is blank, otherwise returns True. """
 
         if self.dead_response(data):
-            if msg:
-                print(msg)
-            self.kill_connection()
-
+            log.critical(f"Dead response received ({msg}), killing server...")
+            self.shutdown()
         return True
 
-    def depickle(self, pickled_item):
-
-        """ Return the depickled version of the item. """
-        return pickle.loads(pickled_item)
-
-    def pickle(self, item):
-
-        """ Return the pickled version of the item. """
-
-        return pickle.dumps(item)
-
-    def msg_client_i(self, int_to_pass, client):
-
-        bytes_i = (int_to_pass).to_bytes(4, "big")
-        self.message_client(client, message)
-
     def dead_response(self, data):
-
+        """Check for a "dead" response within the data, which will be represented as the empty string
+        
+        :param data: entity to check for dead response.
+        :return: True if dead response, false otherwise
+        """
         if data == b"":
             return True
         else:
             return False
 
-    def kill_connection(self):
+    def shutdown(self):
+        """Shutdown the server and kill all client connections."""
+        log.critical(f"Server Shutdown initiating, killing all connections...")
 
-        print("Server shutting down.")
-
-        c_list = self.get_clients()
-
-        print("Killing clients.")
-
-        for client in c_list:
+        for client in self.clients():
+            log.info(f"Shutting down client: {client}")
             client.shutdown(1)
             client.close()
 
-        print("Killing server.")
-
-        self.server.shutdown(1)
-        self.server.close()
-
-        print("Server shut down.")
-
-        sys.exit()
-
-    def msg_client(self, msg, client):
-
-        """ Encode the message (as a string) and send it to the client. """
-
-        log.debug(f"Sending {msg} to client {client}.")
-        client.send(msg.encode(self.ENCODING))
-
-    def msg_client_pp(self, msg, client):
-
-        """ Pickle an item and send it to the client. """
-
-        msg = self.pickle(msg)
-        client.send(msg)
-
-    def msg_client_p(self, msg, client):
-
-        """ Send the client a pickled item. """
-
-        client.send(msg)
-
-    def close_connections(self):
-
-        for wizard in self.wizards:
-            wizard.client.shutdown(1)
-            wizard.client.close()
-
+        log.info(f"Shutting down server.")
         self.server.shutdown(1)
         self.server.close()

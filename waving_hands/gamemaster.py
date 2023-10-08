@@ -712,7 +712,7 @@ class Gamemaster:
     def print_flavor_messages(self):
 
         """ Send the list of flavor messages to each client. """
-        payload = self.server.pickle(self.flavor_list + ["\0"])
+        payload = self.flavor_list + ["\0"]
         clients_finished_turn = {}
         data_sent = {}
         server_responses = self.server.unstructured_command(

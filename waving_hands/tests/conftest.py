@@ -1,4 +1,5 @@
 import pickle
+import select
 from unittest.mock import Mock
 import pytest
 import logging
@@ -42,6 +43,7 @@ def client():
         def __init__(self):
             self.messages = []
             self.message_box = None
+            self.send = Mock()
 
         def get_messages(self):
             if self.message_box is None:
@@ -55,24 +57,33 @@ def client():
                 )
 
         def recv(self, buffsize):
-            m = self.get_messages()
-            print(m)
-            if isinstance(m, str):
-                m = bytes(m, "utf-8")
-            else:
-                m = pickle.dumps(m)
-            return m
-            return bytes(m, "utf-8")
-
-        send = Mock()
+            return self.get_messages()
 
     return MockClient
 
 
 @pytest.fixture
-def mock_server(monkeypatch):
+def mock_pickle(monkeypatch):
+    monkeypatch.setattr(pickle, "dumps", lambda msg: msg)
+    monkeypatch.setattr(pickle, "loads", lambda msg: msg)
+    return pickle
+
+
+@pytest.fixture
+def mock_select(monkeypatch):
+    monkeypatch.setattr(
+        select,
+        "select",
+        lambda rlist, wlist, xlist, timeout=None: (rlist, wlist, xlist),
+    )
+    return select.select
+
+
+@pytest.fixture
+def mock_server(monkeypatch, mock_pickle, mock_select):
     monkeypatch.setattr(
         Server, "wait_for_connections", Mock(return_value=[Mock(), Mock()])
     )
     # Mock pickled data so we can see the raw stuff within tests
-    monkeypatch.setattr(Server, "pickle", lambda self, msg: msg)
+    monkeypatch.setattr(Server, "encode_message", lambda self, msg: msg)
+    return Server
