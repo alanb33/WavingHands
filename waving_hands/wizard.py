@@ -823,7 +823,7 @@ class Wizard(Targetable):
             else:
                 if hand_dict["left"] == "$" or hand_dict["right"] == "$":
                     self.stabbed_this_turn = True
-                if hand_dict["left"] == hand_dict["right"]:
+                if hand_dict["left"].lower() == hand_dict["right"].lower():
                     # if they are the same gesture
                     self.get_hand("left").add_gesture(hand_dict["left"].upper())
                     self.get_hand("right").add_gesture(hand_dict["right"].upper())

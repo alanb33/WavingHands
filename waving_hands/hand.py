@@ -6,7 +6,7 @@ class Hand:
         self._history = ""
 
     def get_latest_gesture(self):
-        if self.history[:-1] == "":
+        if self.history == "":
             # Nothing
             return "c"
         else:
