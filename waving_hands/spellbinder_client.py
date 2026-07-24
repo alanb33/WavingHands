@@ -1044,7 +1044,7 @@ class SpellbinderClient:
             if self.response(monsters, "Server stopped communicating during the STATUS_MONSTERS request."):
                 monsters = self.depickle(monsters)
 
-                if monsters:
+                if monsters is not None:
                     self.monsters = monsters
 
             self.send("STATUS_PARALYZED")
