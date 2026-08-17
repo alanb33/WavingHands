@@ -28,6 +28,12 @@ class Spell:
     def time_remaining(self, value):
         self._time_remaining = value
 
+    def __str__(self):
+        return self.name
+    
+    def __repr__(self):
+        return str(self)
+
     @property
     def name(self):
         return self._name

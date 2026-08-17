@@ -1,10 +1,14 @@
 from random import randint
+import logging
 
 from waving_hands.hand import Hand
 from waving_hands.spellbook_client import SpellbookClient
 from waving_hands.spellbook import Spellbook
 from waving_hands.targetable import Targetable
 from waving_hands.config import DATA
+
+log = logging.getLogger(__name__)
+
 
 class Wizard(Targetable):
 
@@ -36,7 +40,7 @@ class Wizard(Targetable):
         self._stab_victim = None
         self._surrendering = False
 
-        self._c_hands = {}
+        self._c_hands = dict(left="", right="")
 
         self._resurrecting = False
         self._killing_blow = "falls over dead."
@@ -74,6 +78,38 @@ class Wizard(Targetable):
         self._perceived_history = {}
 
         self._client = None
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def basic_stats(self):
+        hands = self.hands_history
+        return f"[{self.name}] HP: {self.hp}, L: {hands['left']}, R: {hands['right']}"
+
+    def is_ready(self):
+        """Is the wizard ready for battle? name, color, taunt, and victory must all be setup""" 
+        return bool(self.name and self.color and self.taunt and self.victory)
+
+    def clear_slate(self):
+        """Clear wizard of all custom attributes, so a player can customize them instead"""
+        self.name = ""
+        self.color = ""
+        self.taunt = ""
+        self.victory = ""
+
+    def set_slate(self, name, color, taunt, victory):
+        self.name = name
+        self.color = color
+        self.taunt = taunt
+        self.victory = victory
+    
+    @property
+    def hands_history(self):
+        return {
+            hand: self.get_hand(hand).show_history()
+            for hand in ("left", "right")
+        }
 
     @property
     def c_hands(self):
